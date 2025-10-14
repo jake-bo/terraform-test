@@ -1,4 +1,4 @@
-name: Manual Workflow
+name: terraform-input
 
 on:
   workflow_dispatch:
