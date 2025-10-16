@@ -30,7 +30,7 @@ jobs:
       uses: trstringer/manual-approval@v1
       with:
         secret: ${{ secrets.GITHUB_TOKEN }}
-        approvers: "jaka-bo"
+        approvers: "@jaka-bo"
         minimum-approvals: 1
         issue-title: "部署审批请求 - 版本 ${{ github.event.inputs.version }}"
         issue-body: |
