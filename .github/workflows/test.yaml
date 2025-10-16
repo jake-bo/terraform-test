@@ -20,39 +20,61 @@ jobs:
 
     - name: Print deployment info
       run: |
-        echo "🚀 部署信息:"
+        echo "🚀 部署准备开始"
         echo "版本: ${{ github.event.inputs.version }}"
         echo "触发者: ${{ github.actor }}"
-        echo "分支: ${{ github.ref }}"
-        echo "提交: ${{ github.sha }}"
+        echo "仓库: ${{ github.repository }}"
+        echo "分支: ${{ github.ref_name }}"
 
     - name: Require Manual Approval
-      uses: trstringer/manual-approval@v1
+      uses: 0-votes/action-required-review@v1
       with:
-        secret: ${{ secrets.GITHUB_TOKEN }}
-        approvers: "jakae_bo@163.com"
-        minimum-approvals: 1
-        issue-title: "部署审批请求 - 版本 ${{ github.event.inputs.version }}"
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        reviewers: jaka-bo
+        min-approvals: 1
+        issue-title: "部署审批请求：版本 ${{ github.event.inputs.version }}"
         issue-body: |
-          ## 部署审批请求
+          # 部署审批请求
           
-          **版本**: ${{ github.event.inputs.version }}
-          **触发者**: ${{ github.actor }}
-          **时间**: ${{ github.event.created_at }}
-          **分支**: ${{ github.ref }}
+          ## 部署信息
+          - **版本**: ${{ github.event.inputs.version }}
+          - **触发者**: ${{ github.actor }}
+          - **仓库**: ${{ github.repository }}
+          - **分支**: ${{ github.ref_name }}
+          - **触发时间**: ${{ github.event.created_at }}
           
-          ### 审批清单
-          - [ ] 确认版本号正确
-          - [ ] 确认部署时间合适
-          - [ ] 确认相关测试已通过
+          ## 审批说明
+          此操作用于部署新版本到生产环境，请仔细审核以下内容：
           
-          请审批此部署请求。
-      
+          ### 需要确认的事项
+          - [ ] 版本号正确无误
+          - [ ] 相关测试已通过
+          - [ ] 部署时间合适
+          - [ ] 回滚方案已准备
+          
+          ### 操作说明
+          请在此 Issue 评论区输入以下命令进行审批：
+          - **批准**: `/approve`
+          - **拒绝**: `/deny`
+          
+          ⚠️ 注意：审批通过后，部署流程将自动继续执行。
+          
+          ---
+          *此审批请求由 GitHub Actions 自动创建*
 
     - name: Execute deployment
       if: success()
       run: |
         echo "✅ 审批已通过，开始执行部署..."
         echo "部署版本: ${{ github.event.inputs.version }}"
-        # 这里添加您实际的部署命令
-        # 例如: terraform apply, kubectl apply, 等
+        # 这里添加实际的部署命令
+        # 例如: 
+        # terraform init
+        # terraform plan -var="version=${{ github.event.inputs.version }}"
+        # terraform apply -auto-approve
+        
+    - name: Deployment completion
+      if: success()
+      run: |
+        echo "🎉 部署完成!"
+        echo "版本 ${{ github.event.inputs.version }} 已成功部署"
