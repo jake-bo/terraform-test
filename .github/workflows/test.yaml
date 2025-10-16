@@ -1,4 +1,4 @@
-name: terraform-input
+name: terraform-deployment-with-approval
 
 on:
   workflow_dispatch:
@@ -6,7 +6,6 @@ on:
       version:
         description: 'Version to deploy'
         required: true
-        # default: 'v1.0.0'
         type: choice
         options:
           - v1.100
@@ -16,5 +15,44 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Print version
-      run: echo "Deploying version ${{ github.event.inputs.version }}"
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Print deployment info
+      run: |
+        echo "🚀 部署信息:"
+        echo "版本: ${{ github.event.inputs.version }}"
+        echo "触发者: ${{ github.actor }}"
+        echo "分支: ${{ github.ref }}"
+        echo "提交: ${{ github.sha }}"
+
+    - name: Require Manual Approval
+      uses: trstringer/manual-approval@v1
+      with:
+        secret: ${{ secrets.GITHUB_TOKEN }}
+        approvers: "jaka-bo"
+        minimum-approvals: 1
+        issue-title: "部署审批请求 - 版本 ${{ github.event.inputs.version }}"
+        issue-body: |
+          ## 部署审批请求
+          
+          **版本**: ${{ github.event.inputs.version }}
+          **触发者**: ${{ github.actor }}
+          **时间**: ${{ github.event.created_at }}
+          **分支**: ${{ github.ref }}
+          
+          ### 审批清单
+          - [ ] 确认版本号正确
+          - [ ] 确认部署时间合适
+          - [ ] 确认相关测试已通过
+          
+          请审批此部署请求。
+      
+
+    - name: Execute deployment
+      if: success()
+      run: |
+        echo "✅ 审批已通过，开始执行部署..."
+        echo "部署版本: ${{ github.event.inputs.version }}"
+        # 这里添加您实际的部署命令
+        # 例如: terraform apply, kubectl apply, 等
