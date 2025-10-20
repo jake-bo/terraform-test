@@ -27,11 +27,15 @@ jobs:
         echo "分支: ${{ github.ref_name }}"
 
     - name: Require Manual Approval
-      uses: 0-votes/action-required-review@v1
+      uses: trstringer/manual-approval@v1
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        reviewers: jaka-bo
-        min-approvals: 1
+        # 必需参数：用于 GitHub API 认证
+        secret: ${{ secrets.GITHUB_TOKEN }}
+        # 审批人列表：将 user1,user2 替换为实际的 GitHub 用户名，用逗号分隔
+        approvers: 'jake-bo'
+        # 关键参数：设置最低批准人数，例如 2 表示至少需要两人批准
+        minimum-approvals: 1
+        # 审批请求的标题和正文
         issue-title: "部署审批请求：版本 ${{ github.event.inputs.version }}"
         issue-body: |
           # 部署审批请求
@@ -57,10 +61,12 @@ jobs:
           - **批准**: `/approve`
           - **拒绝**: `/deny`
           
-          ⚠️ 注意：审批通过后，部署流程将自动继续执行。
+          ⚠️ 注意：需要至少 ${{ inputs.minimum-approvals }} 人批准后，部署流程才会继续执行。
           
           ---
           *此审批请求由 GitHub Actions 自动创建*
+        # 可选参数：设置审批超时时间（例如 24小时），避免工作流无限期等待:cite[1]
+        
 
     - name: Execute deployment
       if: success()
